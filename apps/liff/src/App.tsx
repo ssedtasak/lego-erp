@@ -12,12 +12,18 @@ type User = {
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [currentPage, setCurrentPage] = useState<'home' | 'stock-in' | 'stock-out'>('home');
 
   useEffect(() => {
     const init = async () => {
-      await initLiff();
+      const result = await initLiff();
+      if (!result.ok) {
+        setInitError(result.error ?? 'LIFF init failed');
+        setIsReady(true);
+        return;
+      }
       setIsReady(true);
 
       if (liff.isLoggedIn()) {
@@ -50,6 +56,15 @@ export default function App() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <p className="text-gray-500">กำลังโหลด...</p>
+      </div>
+    );
+  }
+
+  if (initError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
+        <h1 className="text-xl font-bold text-red-600 mb-2">เริ่มต้นระบบไม่สำเร็จ</h1>
+        <p className="text-gray-600 text-sm text-center font-mono bg-white p-3 rounded border border-red-200">{initError}</p>
       </div>
     );
   }

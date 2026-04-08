@@ -1,15 +1,21 @@
 import liff from '@line/liff';
 
-const initLiff = async () => {
+const initLiff = async (): Promise<{ ok: boolean; error?: string }> => {
+  const liffId = import.meta.env.VITE_LINE_LIFF_ID || '';
+  if (!liffId) {
+    const msg = 'VITE_LINE_LIFF_ID is not set — check Vercel environment variables';
+    console.error(msg);
+    return { ok: false, error: msg };
+  }
   try {
-    const liffId = import.meta.env.VITE_LINE_LIFF_ID || '';
-    console.log('LIFF ID:', liffId);
+    console.log('LIFF init with ID:', liffId);
     await liff.init({ liffId });
     console.log('LIFF init success, logged in:', liff.isLoggedIn());
-    return liff.isLoggedIn();
+    return { ok: true };
   } catch (error) {
-    console.error('LIFF init failed:', error);
-    return false;
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('LIFF init failed:', msg);
+    return { ok: false, error: msg };
   }
 };
 
@@ -32,4 +38,5 @@ export const sendMessage = async (messages: { type: 'text'; text: string }[]) =>
   }
 };
 
+export type LiffInitResult = { ok: boolean; error?: string };
 export default initLiff;
