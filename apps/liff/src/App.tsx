@@ -28,10 +28,11 @@ export default function App() {
             displayName: profile.displayName,
           };
           setUser(newUser);
-          // Upsert staff profile
+          // Upsert staff profile with role (default: staff)
           await supabase.from('staff_profiles').upsert({
             line_user_id: newUser.lineUserId,
             display_name: newUser.displayName,
+            role: 'staff',
           }, { onConflict: 'line_user_id' });
         }
       }
