@@ -10,6 +10,6 @@ export default defineConfig({
   },
   server: {
     port: 3000,
-    allowedHosts: ['unrarefied-eugenic-azaria.ngrok-free.dev'],
+    allowedHosts: ['liff-swart.vercel.app'],
   },
 });

@@ -2,7 +2,10 @@ import liff from '@line/liff';
 
 const initLiff = async () => {
   try {
-    await liff.init({ liffId: import.meta.env.VITE_LINE_LIFF_ID || '' });
+    const liffId = import.meta.env.VITE_LINE_LIFF_ID || '';
+    console.log('LIFF ID:', liffId);
+    await liff.init({ liffId });
+    console.log('LIFF init success, logged in:', liff.isLoggedIn());
     return liff.isLoggedIn();
   } catch (error) {
     console.error('LIFF init failed:', error);
