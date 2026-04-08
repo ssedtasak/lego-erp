@@ -22,8 +22,8 @@
 | Priority | Task | Status |
 |----------|------|--------|
 | 🟡 P1 | **Deploy web to Vercel** | ✅ Done (https://web-ten-sigma-95.vercel.app) |
-| 🟡 P1 | **Deploy LIFF to Vercel** | 🚧 In progress — migrated off GitHub Pages, `vercel.json` added, CLI deploy pending |
-| 🟡 P1 | **Update LINE Console Endpoint URL** | ⏳ Pending — set to Vercel LIFF URL once deployed |
+| 🟡 P1 | **Deploy LIFF to Vercel** | ✅ Done — https://lego-erp-liff.vercel.app (project `lego-erp-liff`, env vars persisted) |
+| 🟡 P1 | **Update LINE Console Endpoint URL** | ⏳ Pending — set to https://lego-erp-liff.vercel.app/ in LINE Developer Console |
 
 ## Phase 4 — Polish 📋 TODO
 | Priority | Task | Status |
