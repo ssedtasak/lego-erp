@@ -97,7 +97,7 @@
 | Layer | Technology | Actual Implementation |
 |-------|------------|----------------------|
 | **Web Frontend** | Next.js 14 (App Router) | ✅ `apps/web/` — Deployed to Vercel |
-| **Mobile Frontend** | Vite + React + LIFF SDK | ✅ `apps/liff/` — Stock-In/Out working |
+| **Mobile Frontend** | Vite + React + LIFF SDK | ✅ `apps/liff/` — deployed to Vercel at https://lego-erp-liff.vercel.app |
 | **Backend & Database** | Supabase (PostgreSQL) | ✅ 4 tables, 5 RPC functions, 8 seeded ingredients |
 | **Auth** | Supabase Auth (email/password) | ✅ RLS enabled, email auth working |
 | **Notifications** | LINE Messaging API | ⚠️ Alerts table exists, notification setup pending |
@@ -138,19 +138,19 @@
 15. [x] Bootstrap Vite + React app (`apps/liff`)
 16. [x] Build stock-in form
 17. [x] Build stock-out form
-18. [x] Integrate LINE Login (using liff.login())
-19. [x] Deploy LIFF to Vercel
-20. [ ] Fix LIFF login 400 error (endpoint URL issue in LINE Console)
+18. [x] Integrate LINE Login (using `liff.login()` with explicit `redirectUri`)
+19. [x] Deploy LIFF to Vercel — https://lego-erp-liff.vercel.app (project `lego-erp-liff`)
+20. [ ] **Update LIFF Endpoint URL in LINE Developer Console** → `https://lego-erp-liff.vercel.app/` (resolves the 400 login error)
 
 ### Phase 4 — Automation & Alerts
-21. [ ] Set up LINE Messaging API for push notifications
+21. [ ] Set up LINE Messaging API for push notifications (LINE Notify discontinued Mar 2025)
 22. [ ] Create Edge Function or cron for low-stock alerts
 23. [ ] End-to-end test
 
 ### Phase 5 — Production Polish
-22. [ ] Update LINE Console LIFF endpoint to production URL
-23. [ ] Add more ingredients
-24. [ ] Dashboard improvements (sorting, filtering, export)
+24. [ ] Add more ingredients
+25. [ ] Dashboard improvements (sorting, filtering, export)
+26. [ ] Reconcile LIFF ID across `.env` files (`apps/liff/.env` is the canonical source — `xJeOKHB7`)
 
 ---
 
@@ -158,9 +158,9 @@
 
 | Priority | Issue | Status |
 |----------|-------|--------|
-| 🟡 Medium | **LIFF not deployed** — using ngrok dev URL | Needs deployment to Vercel/Railway |
-| 🟡 Medium | **LINE Console endpoint not updated** | Needs production URL |
-| 🟡 Medium | **Push notifications not configured** | LINE Notify discontinued, need Messaging API |
+| 🔴 High | **LIFF Endpoint URL in LINE Console still points at old host** | Manual: set to `https://lego-erp-liff.vercel.app/` in LINE Developer Console |
+| 🟡 Medium | **Push notifications not configured** | LINE Notify discontinued; need LINE Messaging API + channel access token |
+| 🟡 Medium | **LIFF ID drift** — root `.env` has `…-Y7noXqIJ`, `apps/liff/.env` has `…-xJeOKHB7` | `apps/liff/.env` is source of truth (used at build time). Clean up root `.env` |
 | 🟢 Low | **Add more ingredients** | Can add via dashboard |
 | 🟢 Low | **Dashboard improvements** | Sorting, filtering, export |
 
