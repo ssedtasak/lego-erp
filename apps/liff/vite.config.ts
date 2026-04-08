@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '/lego-erp-liff/',
+  base: '/lego-erp/',
   plugins: [react()],
   resolve: {
     alias: {
