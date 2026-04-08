@@ -13,6 +13,8 @@ type Alert = {
   ingredient?: { name: string };
 };
 
+import BackButton from '@/components/BackButton';
+
 export default function AlertsPage() {
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +37,10 @@ export default function AlertsPage() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">การแจ้งเตือน</h1>
+        <div className="flex items-center gap-4 mb-6">
+          <BackButton />
+          <h1 className="text-2xl font-bold">การแจ้งเตือน</h1>
+        </div>
 
         {loading ? (
           <p>กำลังโหลด...</p>

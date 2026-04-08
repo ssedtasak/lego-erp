@@ -10,6 +10,8 @@ type DailyExpense = {
   transaction_count: number;
 };
 
+import BackButton from '@/components/BackButton';
+
 export default function ReportsPage() {
   const [dailyExpenses, setDailyExpenses] = useState<DailyExpense[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,10 @@ export default function ReportsPage() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">รายงานค่าใช้จ่าย</h1>
+        <div className="flex items-center gap-4 mb-6">
+          <BackButton />
+          <h1 className="text-2xl font-bold">รายงานค่าใช้จ่าย</h1>
+        </div>
 
         <div className="bg-primary-600 text-white p-6 rounded-lg mb-6">
           <p className="text-sm opacity-80">ยอดรวม 30 วัน</p>

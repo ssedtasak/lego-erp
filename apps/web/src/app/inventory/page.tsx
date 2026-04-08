@@ -12,6 +12,8 @@ type Ingredient = {
   cost_per_unit: number;
 };
 
+import BackButton from '@/components/BackButton';
+
 export default function InventoryPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,7 +47,10 @@ export default function InventoryPage() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">ตรวจสอบสต็อก</h1>
+        <div className="flex items-center gap-4 mb-6">
+          <BackButton />
+          <h1 className="text-2xl font-bold">ตรวจสอบสต็อก</h1>
+        </div>
 
         {loading ? (
           <p>กำลังโหลด...</p>

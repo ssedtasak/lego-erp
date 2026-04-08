@@ -12,6 +12,8 @@ type ShoppingItem = {
   needed_qty: number;
 };
 
+import BackButton from '@/components/BackButton';
+
 export default function ShoppingListPage() {
   const [items, setItems] = useState<ShoppingItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,7 +32,10 @@ export default function ShoppingListPage() {
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-bold mb-6">รายการซื้อวันนี้</h1>
+        <div className="flex items-center gap-4 mb-6">
+          <BackButton />
+          <h1 className="text-2xl font-bold">รายการซื้อวันนี้</h1>
+        </div>
 
         {loading ? (
           <p>กำลังโหลด...</p>
