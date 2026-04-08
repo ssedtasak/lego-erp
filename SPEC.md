@@ -138,13 +138,14 @@
 15. [x] Bootstrap Vite + React app (`apps/liff`)
 16. [x] Build stock-in form
 17. [x] Build stock-out form
-18. [x] Integrate LINE Login (fixed with liff.login())
-19. [ ] Deploy LIFF to production URL
+18. [x] Integrate LINE Login (using liff.login())
+19. [x] Deploy LIFF to Vercel
+20. [ ] Fix LIFF login 400 error (endpoint URL issue in LINE Console)
 
 ### Phase 4 — Automation & Alerts
-19. [ ] Set up LINE Messaging API for push notifications
-20. [ ] Create Edge Function or cron for low-stock alerts
-21. [ ] End-to-end test
+21. [ ] Set up LINE Messaging API for push notifications
+22. [ ] Create Edge Function or cron for low-stock alerts
+23. [ ] End-to-end test
 
 ### Phase 5 — Production Polish
 22. [ ] Update LINE Console LIFF endpoint to production URL
