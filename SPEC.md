@@ -96,11 +96,11 @@
 
 | Layer | Technology | Actual Implementation |
 |-------|------------|----------------------|
-| **Web Frontend** | Next.js 14 (App Router) | ✅ `apps/web/` — localhost:3001 |
+| **Web Frontend** | Next.js 14 (App Router) | ✅ `apps/web/` — Deployed to Vercel |
 | **Mobile Frontend** | Vite + React + LIFF SDK | ✅ `apps/liff/` — Stock-In/Out working |
 | **Backend & Database** | Supabase (PostgreSQL) | ✅ 4 tables, 5 RPC functions, 8 seeded ingredients |
-| **Auth** | Supabase Auth + LINE Login | ⚠️ RLS disabled — no auth on web dashboard |
-| **Notifications** | LINE Messaging API / Notify | ⚠️ Alerts table exists, LINE Notify not connected |
+| **Auth** | Supabase Auth (email/password) | ✅ RLS enabled, email auth working |
+| **Notifications** | LINE Messaging API | ⚠️ Alerts table exists, notification setup pending |
 
 ### RPC Functions
 
@@ -120,26 +120,36 @@
 1. [x] Set up Supabase project
 2. [x] Run `supabase/schema.sql`
 3. [x] Configure `.env` with credentials
-4. [x] Run `supabase/disable_rls.sql` (MVP — public access, **needs fix before production**)
+4. [x] Enable RLS on all tables (`supabase/enable_rls.sql`)
+5. [x] Enable Supabase Email Auth
+6. [x] Create test user (owner@test.com)
 
 ### Phase 2 — Web Dashboard (Owner)
-5. [x] Bootstrap Next.js app (`apps/web`)
-6. [x] Build ingredient CRUD page
-7. [x] Build inventory monitor table
-8. [x] Build expense summary page
-9. [x] Build shopping list page
+7. [x] Bootstrap Next.js app (`apps/web`)
+8. [x] Build ingredient CRUD page
+9. [x] Build inventory monitor table
+10. [x] Build expense summary page
+11. [x] Build shopping list page
+12. [x] Add login page with Supabase Auth
+13. [x] Deploy to Vercel
 
 ### Phase 3 — LINE LIFF (Staff)
-10. [x] Create LIFF app in LINE Developer Console
-11. [x] Bootstrap Vite + React app (`apps/liff`)
-12. [x] Build stock-in form
-13. [x] Build stock-out form
-14. [x] Integrate LINE Login
+14. [x] Create LIFF app in LINE Developer Console
+15. [x] Bootstrap Vite + React app (`apps/liff`)
+16. [x] Build stock-in form
+17. [x] Build stock-out form
+18. [x] Integrate LINE Login (fixed with liff.login())
+19. [ ] Deploy LIFF to production URL
 
 ### Phase 4 — Automation & Alerts
-15. [ ] Set up `tools/notify_low_stock.py` cron — **BLOCKED**: LINE Notify token not set
-16. [ ] Connect LINE Messaging API
-17. [ ] End-to-end test
+19. [ ] Set up LINE Messaging API for push notifications
+20. [ ] Create Edge Function or cron for low-stock alerts
+21. [ ] End-to-end test
+
+### Phase 5 — Production Polish
+22. [ ] Update LINE Console LIFF endpoint to production URL
+23. [ ] Add more ingredients
+24. [ ] Dashboard improvements (sorting, filtering, export)
 
 ---
 
@@ -147,12 +157,11 @@
 
 | Priority | Issue | Status |
 |----------|-------|--------|
-| 🔴 Critical | **RLS disabled** — anyone can read/write all data | Needs fix before production |
-| 🔴 Critical | **No auth on web dashboard** — anyone can edit | Needs authentication |
-| 🟡 Medium | **LINE Notify token not set** — low-stock alerts not working | Token needed in `.env` |
-| 🟡 Medium | **No production deployment** — using ngrok dev URL | Needs Vercel/Railway |
-| 🟢 Low | **No transaction notes field in LIFF** | LIFF form already has `note` field in DB |
-| 🟢 Low | **More ingredients needed** | 8 seeded, can add via dashboard |
+| 🟡 Medium | **LIFF not deployed** — using ngrok dev URL | Needs deployment to Vercel/Railway |
+| 🟡 Medium | **LINE Console endpoint not updated** | Needs production URL |
+| 🟡 Medium | **Push notifications not configured** | LINE Notify discontinued, need Messaging API |
+| 🟢 Low | **Add more ingredients** | Can add via dashboard |
+| 🟢 Low | **Dashboard improvements** | Sorting, filtering, export |
 
 ---
 
@@ -160,9 +169,10 @@
 
 | Environment | URL |
 |-------------|-----|
-| Web Dashboard (local) | http://localhost:3001 |
-| LIFF App (local) | http://localhost:5173 |
-| ngrok tunnel | https://unrarefied-eugenic-azaria.ngrok-free.dev |
+| Web Dashboard (Production) | https://web-ten-sigma-95.vercel.app |
+| Web Dashboard (Local) | http://localhost:3001 |
+| LIFF App | line://app/2009735486-Y7noXqIJ |
+| ngrok tunnel (dev) | https://unrarefied-eugenic-azaria.ngrok-free.dev |
 
 ---
 
