@@ -48,7 +48,11 @@ export default function App() {
 
   const handleLogin = () => {
     if (!liff.isLoggedIn()) {
-      liff.login();
+      // Pass an explicit redirectUri so LIFF always returns to the exact URL
+      // registered as the Endpoint URL in the LINE Developer Console.
+      // Must include the GitHub Pages base path (see vite.config.ts `base`).
+      const redirectUri = `${window.location.origin}${import.meta.env.BASE_URL}`;
+      liff.login({ redirectUri });
     }
   };
 
@@ -64,7 +68,14 @@ export default function App() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 p-6">
         <h1 className="text-xl font-bold text-red-600 mb-2">เริ่มต้นระบบไม่สำเร็จ</h1>
-        <p className="text-gray-600 text-sm text-center font-mono bg-white p-3 rounded border border-red-200">{initError}</p>
+        <p className="text-gray-600 text-sm text-center font-mono bg-white p-3 rounded border border-red-200 mb-3">{initError}</p>
+        <div className="text-xs text-gray-500 font-mono bg-white p-3 rounded border border-gray-200 w-full max-w-md break-all">
+          <div>LIFF ID: {import.meta.env.VITE_LINE_LIFF_ID || '(not set)'}</div>
+          <div>Current URL: {window.location.href}</div>
+          <div className="mt-2 text-gray-400">
+            Verify this URL matches the LIFF Endpoint URL in the LINE Developer Console.
+          </div>
+        </div>
       </div>
     );
   }

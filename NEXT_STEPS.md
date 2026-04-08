@@ -22,8 +22,8 @@
 | Priority | Task | Status |
 |----------|------|--------|
 | 🟡 P1 | **Deploy web to Vercel** | ✅ Done (https://web-ten-sigma-95.vercel.app) |
-| 🟡 P1 | **Deploy LIFF to production** | ⏳ Pending |
-| 🟡 P1 | **Update LINE Console URLs** | ⏳ Pending |
+| 🟡 P1 | **Deploy LIFF to Vercel** | 🚧 In progress — migrated off GitHub Pages, `vercel.json` added, CLI deploy pending |
+| 🟡 P1 | **Update LINE Console Endpoint URL** | ⏳ Pending — set to Vercel LIFF URL once deployed |
 
 ## Phase 4 — Polish 📋 TODO
 | Priority | Task | Status |

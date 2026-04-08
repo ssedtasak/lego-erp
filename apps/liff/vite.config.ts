@@ -2,7 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
-  base: '/lego-erp/',
+  // Served at the root of the Vercel project domain
+  base: '/',
   plugins: [react()],
   resolve: {
     alias: {

@@ -38,3 +38,4 @@ venv/
 *.bak
 *.tmp
 .tmp/
+.vercel

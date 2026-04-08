@@ -1,11 +1,8 @@
 name: Deploy LIFF App to GitHub Pages
 
+# Disabled: LIFF app is now deployed via Vercel (see apps/liff/vercel.json).
+# Kept for reference / easy rollback. Trigger manually via workflow_dispatch only.
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'apps/liff/**'
-      - '.github/workflows/deploy-liff.yml'
   workflow_dispatch:
 
 permissions:

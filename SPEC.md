@@ -172,7 +172,8 @@
 |-------------|-----|
 | Web Dashboard (Production) | https://web-ten-sigma-95.vercel.app |
 | Web Dashboard (Local) | http://localhost:3001 |
-| LIFF App | line://app/2009735486-Y7noXqIJ |
+| LIFF App | https://liff.line.me/2009735486-xJeOKHB7 |
+| LIFF App (Vercel host) | (set after first Vercel deploy) |
 | ngrok tunnel (dev) | https://unrarefied-eugenic-azaria.ngrok-free.dev |
 
 ---
