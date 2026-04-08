@@ -36,6 +36,10 @@ jobs:
         working-directory: apps/liff
 
       - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+          VITE_LINE_LIFF_ID: ${{ secrets.VITE_LINE_LIFF_ID }}
         run: npm run build
         working-directory: apps/liff
 
