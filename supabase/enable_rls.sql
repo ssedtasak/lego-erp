@@ -1,6 +1,6 @@
 -- ============================================
 -- LEGO ERP: Enable Row Level Security
--- Phase 1 Security - Production Ready
+-- Phase 2 Security - Email + LINE auth support
 -- ============================================
 
 -- Enable RLS on all tables
@@ -21,13 +21,13 @@ CREATE POLICY "Staff profiles are viewable by authenticated users"
 CREATE POLICY "Users can update own profile"
   ON staff_profiles FOR UPDATE
   TO authenticated
-  USING (auth.uid() = line_user_id);
+  USING (auth.uid() = id OR auth.uid() = auth_user_id);
 
 -- Policy: Users can insert their own profile (signup)
 CREATE POLICY "Users can insert own profile"
   ON staff_profiles FOR INSERT
   TO authenticated
-  WITH CHECK (auth.uid()::TEXT = line_user_id);
+  WITH CHECK (auth.uid() = id OR auth.uid() = auth_user_id);
 
 -- ============================================
 -- Policy: Ingredients - owners can do everything, staff read-only
@@ -38,7 +38,7 @@ CREATE POLICY "Owners can do everything on ingredients"
   USING (
     EXISTS (
       SELECT 1 FROM staff_profiles
-      WHERE line_user_id = auth.uid()::TEXT
+      WHERE (line_user_id = auth.uid()::TEXT OR auth_user_id = auth.uid())
       AND role = 'owner'
     )
   );
@@ -52,7 +52,7 @@ CREATE POLICY "Owners can do everything on transactions"
   USING (
     EXISTS (
       SELECT 1 FROM staff_profiles
-      WHERE line_user_id = auth.uid()::TEXT
+      WHERE (line_user_id = auth.uid()::TEXT OR auth_user_id = auth.uid())
       AND role = 'owner'
     )
   );
@@ -71,7 +71,7 @@ CREATE POLICY "Owners can do everything on alerts"
   USING (
     EXISTS (
       SELECT 1 FROM staff_profiles
-      WHERE line_user_id = auth.uid()::TEXT
+      WHERE (line_user_id = auth.uid()::TEXT OR auth_user_id = auth.uid())
       AND role = 'owner'
     )
   );
@@ -101,3 +101,25 @@ GRANT EXECUTE ON FUNCTION get_daily_expense(DATE) TO authenticated;
 GRANT EXECUTE ON FUNCTION record_stock_in(UUID, NUMERIC, NUMERIC, TEXT, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION record_stock_out(UUID, NUMERIC, TEXT, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION update_updated_at() TO authenticated;
+
+-- ============================================
+-- Function: Auto-create owner profile on email signup
+-- ============================================
+CREATE OR REPLACE FUNCTION create_owner_profile()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.email IS NOT NULL THEN
+    INSERT INTO staff_profiles (line_user_id, auth_user_id, display_name, role)
+    VALUES (NULL, NEW.id, COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email), 'owner')
+    ON CONFLICT (auth_user_id) DO NOTHING;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to auto-create owner profile on signup
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW
+  EXECUTE FUNCTION create_owner_profile();

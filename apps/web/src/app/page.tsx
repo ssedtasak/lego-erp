@@ -1,12 +1,37 @@
+'use client';
+
 import Link from 'next/link';
+import { createClient } from '@/lib/supabase';
+import { useEffect, useState } from 'react';
+import { LogOut } from 'lucide-react';
 
 export default function HomePage() {
+  const [user, setUser] = useState<any>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  }, []);
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  }
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-8">
       <div className="max-w-2xl w-full space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-4xl font-bold text-primary-600">LEGO ERP</h1>
           <p className="text-gray-600">ระบบจัดการสต็อกวัตถุดิบ</p>
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="mt-2 text-sm text-gray-500 hover:text-red-600 flex items-center gap-1 mx-auto"
+            >
+              <LogOut size={14} /> ออกจากระบบ
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

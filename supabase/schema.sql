@@ -14,7 +14,7 @@ CREATE TABLE ingredients (
   name TEXT NOT NULL,
   unit TEXT NOT NULL DEFAULT 'kg',
   min_qty NUMERIC NOT NULL DEFAULT 0,
-  current_qty NUMERIC NOT NULL DEFAULT 0,
+  current_qty NUMERIC NOT NULL DEFAULT 0 CHECK (current_qty >= 0),
   cost_per_unit NUMERIC NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -39,10 +39,12 @@ CREATE TABLE transactions (
 -- ============================================
 -- Table: staff_profiles
 -- LINE user mapping for staff identification
+-- Also stores email-authenticated owners via auth_user_id
 -- ============================================
 CREATE TABLE staff_profiles (
   id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-  line_user_id TEXT UNIQUE NOT NULL,
+  line_user_id TEXT UNIQUE,
+  auth_user_id UUID UNIQUE,
   display_name TEXT,
   role TEXT NOT NULL DEFAULT 'staff',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),

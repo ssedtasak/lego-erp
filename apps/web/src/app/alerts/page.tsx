@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase';
+import { Trash2, CheckCircle } from 'lucide-react';
 
 type Alert = {
   id: string;
@@ -34,12 +35,27 @@ export default function AlertsPage() {
     setLoading(false);
   }
 
+  async function markAsSent(alertId: string) {
+    await supabase
+      .from('alerts')
+      .update({ is_sent: true, sent_at: new Date().toISOString() })
+      .eq('id', alertId);
+    fetchAlerts();
+  }
+
+  async function deleteAlert(alertId: string) {
+    if (!confirm('ลบการแจ้งเตือนนี้?')) return;
+    await supabase.from('alerts').delete().eq('id', alertId);
+    fetchAlerts();
+  }
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center gap-4 mb-6">
           <BackButton />
           <h1 className="text-2xl font-bold">การแจ้งเตือน</h1>
+          <span className="text-sm text-gray-500">({alerts.length} รายการ)</span>
         </div>
 
         {loading ? (
@@ -58,15 +74,33 @@ export default function AlertsPage() {
                 }`}
               >
                 <div className="flex justify-between items-start">
-                  <div>
+                  <div className="flex-1">
                     <p className="font-medium">{alert.ingredient?.name || 'Unknown'}</p>
                     <p className="text-sm text-gray-600">{alert.message}</p>
                   </div>
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    alert.is_sent ? 'bg-gray-200' : 'bg-yellow-200'
-                  }`}>
-                    {alert.is_sent ? 'ส่งแล้ว' : 'รอส่ง'}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-xs px-2 py-1 rounded ${
+                      alert.is_sent ? 'bg-gray-200' : 'bg-yellow-200'
+                    }`}>
+                      {alert.is_sent ? 'ส่งแล้ว' : 'รอส่ง'}
+                    </span>
+                    {!alert.is_sent && (
+                      <button
+                        onClick={() => markAsSent(alert.id)}
+                        className="p-2 text-green-600 hover:bg-green-50 rounded"
+                        title="ทำเครื่องหมายว่าส่งแล้ว"
+                      >
+                        <CheckCircle size={18} />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => deleteAlert(alert.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded"
+                      title="ลบ"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
                 <p className="text-xs text-gray-400 mt-2">
                   {new Date(alert.created_at).toLocaleString('th-TH')}

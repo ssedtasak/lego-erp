@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ErrorBoundaryClient } from '@/components/ErrorBoundaryClient';
 
 export const metadata: Metadata = {
   title: 'LEGO ERP - Stock Dashboard',
@@ -13,7 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="th">
-      <body className="bg-gray-50 text-gray-900">{children}</body>
+      <body className="bg-gray-50 text-gray-900">
+        <ErrorBoundaryClient>
+          {children}
+        </ErrorBoundaryClient>
+      </body>
     </html>
   );
 }
