@@ -158,6 +158,7 @@
 
 | Priority | Issue | Status |
 |----------|-------|--------|
+| 🔴 High | **LIFF staff authentication mismatch** — LINE users authenticate via LINE SDK (not Supabase). RLS `auth.uid()` checks fail because Supabase doesn't receive LINE auth tokens. `staff_profiles.line_user_id` exists but RLS can't use it for the `transactions` INSERT policy. RPC functions also limited to `authenticated` users. | In progress: granted `EXECUTE ON FUNCTION` to `public` and `INSERT ON transactions` to `public` to allow LINE users to call RPC functions. Still failing — needs further investigation. |
 | 🔴 High | **LIFF Endpoint URL in LINE Console still points at old host** | Manual: set to `https://lego-erp-liff.vercel.app/` in LINE Developer Console |
 | 🟡 Medium | **Push notifications not configured** | LINE Notify discontinued; need LINE Messaging API + channel access token |
 | 🟡 Medium | **LIFF ID drift** — root `.env` has `…-Y7noXqIJ`, `apps/liff/.env` has `…-xJeOKHB7` | `apps/liff/.env` is source of truth (used at build time). Clean up root `.env` |
