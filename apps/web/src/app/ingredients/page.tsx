@@ -32,6 +32,7 @@ export default function IngredientsPage() {
     min_qty: '',
     cost_per_unit: '',
   });
+  const [editingId, setEditingId] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -49,19 +50,51 @@ export default function IngredientsPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const { error } = await supabase.from('ingredients').insert({
-      name: form.name,
-      unit: form.unit,
-      min_qty: parseFloat(form.min_qty) || 0,
-      cost_per_unit: parseFloat(form.cost_per_unit) || 0,
-      current_qty: 0,
-    });
+    if (editingId) {
+      // Update existing
+      const { error } = await supabase
+        .from('ingredients')
+        .update({
+          name: form.name,
+          unit: form.unit,
+          min_qty: parseFloat(form.min_qty) || 0,
+          cost_per_unit: parseFloat(form.cost_per_unit) || 0,
+        })
+        .eq('id', editingId);
 
-    if (!error) {
-      setForm({ name: '', unit: 'kg', min_qty: '', cost_per_unit: '' });
-      setShowForm(false);
-      fetchIngredients();
+      if (!error) {
+        setEditingId(null);
+        setForm({ name: '', unit: 'kg', min_qty: '', cost_per_unit: '' });
+        setShowForm(false);
+        fetchIngredients();
+      }
+    } else {
+      // Insert new
+      const { error } = await supabase.from('ingredients').insert({
+        name: form.name,
+        unit: form.unit,
+        min_qty: parseFloat(form.min_qty) || 0,
+        cost_per_unit: parseFloat(form.cost_per_unit) || 0,
+        current_qty: 0,
+      });
+
+      if (!error) {
+        setForm({ name: '', unit: 'kg', min_qty: '', cost_per_unit: '' });
+        setShowForm(false);
+        fetchIngredients();
+      }
     }
+  }
+
+  function handleEdit(ing: Ingredient) {
+    setForm({
+      name: ing.name,
+      unit: ing.unit,
+      min_qty: String(ing.min_qty),
+      cost_per_unit: String(ing.cost_per_unit),
+    });
+    setEditingId(ing.id);
+    setShowForm(true);
   }
 
   async function handleDelete(id: string) {
@@ -90,6 +123,77 @@ export default function IngredientsPage() {
       ing.cost_per_unit,
     ]);
     exportToCSV(headers, rows, `ingredients_${new Date().toISOString().split('T')[0]}.csv`);
+  }
+
+  function downloadTemplate() {
+    const headers = ['ชื่อ', 'หน่วย', 'ขั้นต่ำ', 'ราคา/หน่วย'];
+    const sample = [
+      ['เนื้อหมู', 'kg', '10', '180'],
+      ['ข้าว', 'kg', '20', '45'],
+    ];
+    const csv = [headers, ...sample].map(row => row.join(',')).join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'ingredient_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleCSVImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const text = await file.text();
+    const lines = text.split('\n').filter(line => line.trim());
+    const rows = lines.map(line => {
+      const cells: string[] = [];
+      let current = '';
+      let inQuotes = false;
+      for (const char of line) {
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          cells.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      cells.push(current.trim());
+      return cells;
+    });
+
+    for (const row of rows.slice(1)) {
+      if (row.length < 4) continue;
+      const [name, unit, min_qty, cost_per_unit] = row;
+
+      const { data: existing } = await supabase
+        .from('ingredients')
+        .select('id')
+        .eq('name', name)
+        .single();
+
+      if (existing) {
+        await supabase.from('ingredients').update({
+          unit,
+          min_qty: parseFloat(min_qty),
+          cost_per_unit: parseFloat(cost_per_unit),
+        }).eq('id', existing.id);
+      } else {
+        await supabase.from('ingredients').insert({
+          name,
+          unit,
+          min_qty: parseFloat(min_qty),
+          cost_per_unit: parseFloat(cost_per_unit),
+          current_qty: 0,
+        });
+      }
+    }
+
+    fetchIngredients();
+    e.target.value = '';
   }
 
   const filteredAndSorted = useMemo(() => {
@@ -181,27 +285,41 @@ export default function IngredientsPage() {
               type="submit"
               className="mt-4 px-4 py-2 bg-primary-600 text-white rounded hover:bg-primary-700"
             >
-              บันทึก
+              {editingId ? 'บันทึก' : 'เพิ่มวัตถุดิบ'}
             </button>
           </form>
         )}
 
         {!loading && (
-          <div className="flex gap-4 mb-4">
-            <input
-              type="text"
-              placeholder="ค้นหาชื่อวัตถุดิบ..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 p-2 border rounded"
-            />
-            <button
-              onClick={exportCSV}
-              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-            >
-              ส่งออก CSV
-            </button>
-          </div>
+          <>
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={downloadTemplate}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              >
+                ดาวน์โหลด Template
+              </button>
+              <label className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer">
+                นำเข้า CSV
+                <input type="file" accept=".csv" onChange={handleCSVImport} className="hidden" />
+              </label>
+            </div>
+            <div className="flex gap-4 mb-4">
+              <input
+                type="text"
+                placeholder="ค้นหาชื่อวัตถุดิบ..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="flex-1 p-2 border rounded"
+              />
+              <button
+                onClick={exportCSV}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+              >
+                ส่งออก CSV
+              </button>
+            </div>
+          </>
         )}
 
         {loading ? (
@@ -238,6 +356,12 @@ export default function IngredientsPage() {
                     <td className="p-4 text-right">{ing.current_qty}</td>
                     <td className="p-4 text-right">{formatCurrency(ing.cost_per_unit)}</td>
                     <td className="p-4 text-right">
+                      <button
+                        onClick={() => handleEdit(ing)}
+                        className="text-blue-600 hover:text-blue-800 mr-3"
+                      >
+                        แก้ไข
+                      </button>
                       <button
                         onClick={() => handleDelete(ing.id)}
                         className="text-red-600 hover:text-red-800"

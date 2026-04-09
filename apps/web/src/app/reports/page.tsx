@@ -12,13 +12,30 @@ type DailyExpense = {
 
 import BackButton from '@/components/BackButton';
 
-type Period = '7' | '14' | '30' | '90';
+type PeriodValue = number | 'month';
+
+const periods = [
+  { label: '7 วัน', value: 7 },
+  { label: '14 วัน', value: 14 },
+  { label: '21 วัน', value: 21 },
+  { label: '31 วัน', value: 31 },
+  { label: 'เดือนนี้', value: 'month' as const },
+];
+
+function getMonthRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  return {
+    start: start.toISOString().split('T')[0],
+    end: now.toISOString().split('T')[0],
+  };
+}
 
 export default function ReportsPage() {
   const [dailyExpenses, setDailyExpenses] = useState<DailyExpense[]>([]);
   const [loading, setLoading] = useState(true);
   const [totalPeriod, setTotalPeriod] = useState(0);
-  const [period, setPeriod] = useState<Period>('30');
+  const [period, setPeriod] = useState<PeriodValue>('month');
   const supabase = createClient();
 
   useEffect(() => {
@@ -26,9 +43,18 @@ export default function ReportsPage() {
   }, [period]);
 
   async function fetchReports() {
-    const days = parseInt(period);
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    let startDate: Date;
+    let endDate: string;
+
+    if (period === 'month') {
+      const range = getMonthRange();
+      startDate = new Date(range.start);
+      endDate = range.end;
+    } else {
+      startDate = new Date();
+      startDate.setDate(startDate.getDate() - period);
+      endDate = new Date().toISOString().split('T')[0];
+    }
 
     const { data } = await supabase
       .from('transactions')
@@ -99,7 +125,7 @@ export default function ReportsPage() {
         <div className="bg-primary-600 text-white p-6 rounded-lg mb-6">
           <div className="flex justify-between items-start">
             <div>
-              <p className="text-sm opacity-80">ยอดรวม {period} วัน</p>
+              <p className="text-sm opacity-80">ยอดรวม {period === 'month' ? 'เดือนนี้' : `${period} วัน`}</p>
               <p className="text-3xl font-bold">{formatCurrency(totalPeriod)}</p>
             </div>
             <div className="text-right">
@@ -110,14 +136,14 @@ export default function ReportsPage() {
         </div>
 
         <div className="bg-white p-4 rounded-lg shadow mb-4">
-          <div className="flex gap-2">
-            {(['7', '14', '30', '90'] as Period[]).map((p) => (
+          <div className="flex gap-2 flex-wrap">
+            {periods.map((p) => (
               <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                className={`px-4 py-2 rounded ${period === p ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                key={String(p.value)}
+                onClick={() => setPeriod(p.value)}
+                className={`px-4 py-2 rounded ${period === p.value ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
               >
-                {p === '90' ? '3 เดือน' : `${p} วัน`}
+                {p.label}
               </button>
             ))}
           </div>
