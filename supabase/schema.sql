@@ -204,6 +204,88 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================
+-- Table: stock_adjustments
+-- Tracks bulk inventory edit sessions
+-- ============================================
+CREATE TABLE stock_adjustments (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  staff_id TEXT,
+  total_items INTEGER NOT NULL DEFAULT 0,
+  note TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================
+-- Table: stock_adjustment_items
+-- Individual ingredient changes within a bulk edit
+-- ============================================
+CREATE TABLE stock_adjustment_items (
+  id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  adjustment_id UUID NOT NULL REFERENCES stock_adjustments(id) ON DELETE CASCADE,
+  ingredient_id UUID NOT NULL REFERENCES ingredients(id) ON DELETE CASCADE,
+  old_qty NUMERIC NOT NULL,
+  new_qty NUMERIC NOT NULL,
+  difference NUMERIC NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ============================================
+-- Indexes for stock_adjustments
+-- ============================================
+CREATE INDEX idx_stock_adjustments_created_at ON stock_adjustments(created_at);
+CREATE INDEX idx_stock_adjustment_items_adjustment_id ON stock_adjustment_items(adjustment_id);
+
+-- ============================================
+-- Function: Bulk update stock quantities
+-- ============================================
+CREATE OR REPLACE FUNCTION bulk_update_stock(
+  p_adjustments JSONB,
+  p_staff_id TEXT DEFAULT NULL,
+  p_note TEXT DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+  v_adjustment_id UUID;
+  v_item JSONB;
+  v_ingredient_id UUID;
+  v_old_qty NUMERIC;
+  v_new_qty NUMERIC;
+  v_difference NUMERIC;
+  v_total_items INTEGER := 0;
+BEGIN
+  -- Create adjustment record
+  INSERT INTO stock_adjustments (staff_id, total_items, note)
+  VALUES (p_staff_id, 0, p_note)
+  RETURNING id INTO v_adjustment_id;
+
+  -- Process each adjustment
+  FOR v_item IN SELECT * FROM jsonb_array_elements(p_adjustments)
+  LOOP
+    v_ingredient_id := (v_item->>'ingredient_id')::UUID;
+    v_old_qty := (v_item->>'old_qty')::NUMERIC;
+    v_new_qty := (v_item->>'new_qty')::NUMERIC;
+    v_difference := v_new_qty - v_old_qty;
+    v_total_items := v_total_items + 1;
+
+    -- Update ingredient quantity
+    UPDATE ingredients
+    SET current_qty = v_new_qty,
+        updated_at = NOW()
+    WHERE id = v_ingredient_id;
+
+    -- Insert adjustment item
+    INSERT INTO stock_adjustment_items (adjustment_id, ingredient_id, old_qty, new_qty, difference)
+    VALUES (v_adjustment_id, v_ingredient_id, v_old_qty, v_new_qty, v_difference);
+  END LOOP;
+
+  -- Update total_items count
+  UPDATE stock_adjustments SET total_items = v_total_items WHERE id = v_adjustment_id;
+
+  RETURN v_adjustment_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================
 -- Seed data: Sample ingredients
 -- ============================================
 INSERT INTO ingredients (name, unit, min_qty, current_qty, cost_per_unit) VALUES

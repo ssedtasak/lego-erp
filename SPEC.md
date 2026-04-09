@@ -26,6 +26,7 @@
 | **Ingredient Management** | Add / edit / delete ingredients + unit + cost per unit | ✅ Done |
 | **CSV Import** | Bulk import ingredients via CSV template | ✅ Done |
 | **Inventory Monitor** | Table showing current stock for all ingredients | ✅ Done |
+| **Bulk Edit** | Edit all ingredient quantities at once with audit trail | ✅ Done |
 | **Stock Usage Report** | Track OUT transactions with period selector + print view | ✅ Done |
 | **Expense Summary** | Total spending on ingredients (from Stock-In transactions) | ✅ Done |
 | **Reports** | Spending trends, charts, date range filters | ✅ Done |
