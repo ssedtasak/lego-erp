@@ -37,7 +37,7 @@ Records stock entry and updates `current_qty`.
 | p_ingredient_id | UUID | Ingredient ID |
 | p_amount | NUMERIC | Quantity received |
 | p_unit_price | NUMERIC | Price per unit (THB) |
-| p_staff_id | TEXT | LINE user ID (optional) |
+| p_staff_id | TEXT | User ID (optional) |
 | p_note | TEXT | Notes (optional) |
 
 **Returns:** Transaction UUID
@@ -48,7 +48,7 @@ SELECT record_stock_in(
   'uuid-here',
   5,
   180,
-  'U123456',
+  'user-123',
   'ซื้อจากตลาด'
 );
 ```
@@ -64,7 +64,7 @@ Records stock usage and decreases `current_qty`.
 |-------|------|-------------|
 | p_ingredient_id | UUID | Ingredient ID |
 | p_amount | NUMERIC | Quantity used |
-| p_staff_id | TEXT | LINE user ID (optional) |
+| p_staff_id | TEXT | User ID (optional) |
 | p_note | TEXT | Notes (optional) |
 
 **Returns:** Transaction UUID
@@ -76,7 +76,7 @@ Records stock usage and decreases `current_qty`.
 SELECT record_stock_out(
   'uuid-here',
   2,
-  'U123456',
+  'user-123',
   'ใช้ทำก๋วยเตี๋ยว'
 );
 ```
@@ -128,44 +128,6 @@ const { data } = await supabase
 
 // RPC call
 const { data } = await supabase.rpc('get_shopping_list');
-```
-
-### LIFF App (Vite + React)
-
-```typescript
-import { supabase } from './lib/supabase';
-
-// Insert with RPC
-await supabase.rpc('record_stock_in', {
-  p_ingredient_id: 'uuid',
-  p_amount: 5,
-  p_unit_price: 180,
-  p_staff_id: 'line-user-id'
-});
-```
-
----
-
-## LINE Messaging API
-
-### Send Push Message
-
-```python
-import urllib.request
-import json
-
-def send_push(user_id, message):
-    url = "https://api.line.me/v2/bot/message/push"
-    headers = {
-        "Authorization": f"Bearer {LINE_CHANNEL_ACCESS_TOKEN}",
-        "Content-Type": "application/json"
-    }
-    body = json.dumps({
-        "to": user_id,
-        "messages": [{"type": "text", "text": message}]
-    })
-    req = urllib.request.Request(url, data=body.encode(), headers=headers)
-    urllib.request.urlopen(req)
 ```
 
 ---
