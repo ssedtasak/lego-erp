@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase';
 import { formatCurrency } from '@/lib/utils';
+import { exportToCSV } from '@/lib/csv';
 
 type Ingredient = {
   id: string;
@@ -15,10 +16,16 @@ type Ingredient = {
 
 import BackButton from '@/components/BackButton';
 
+type SortField = 'name' | 'unit' | 'min_qty' | 'current_qty' | 'cost_per_unit';
+type SortDir = 'asc' | 'desc';
+
 export default function IngredientsPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState('');
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [form, setForm] = useState({
     name: '',
     unit: 'kg',
@@ -62,6 +69,49 @@ export default function IngredientsPage() {
       await supabase.from('ingredients').delete().eq('id', id);
       fetchIngredients();
     }
+  }
+
+  function handleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+  }
+
+  function exportCSV() {
+    const headers = ['ชื่อ', 'หน่วย', 'ขั้นต่ำ', 'คงเหลือ', 'ราคา/หน่วย'];
+    const rows = filteredAndSorted.map(ing => [
+      ing.name,
+      ing.unit,
+      ing.min_qty,
+      ing.current_qty,
+      ing.cost_per_unit,
+    ]);
+    exportToCSV(headers, rows, `ingredients_${new Date().toISOString().split('T')[0]}.csv`);
+  }
+
+  const filteredAndSorted = useMemo(() => {
+    let result = [...ingredients];
+    if (search) {
+      result = result.filter(ing => ing.name.toLowerCase().includes(search.toLowerCase()));
+    }
+    result.sort((a, b) => {
+      let valA = a[sortField];
+      let valB = b[sortField];
+      if (typeof valA === 'string') valA = valA.toLowerCase();
+      if (typeof valB === 'string') valB = valB.toLowerCase();
+      if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return result;
+  }, [ingredients, search, sortField, sortDir]);
+
+  function SortIcon({ field }: { field: SortField }) {
+    if (sortField !== field) return <span className="text-gray-400 ml-1">↕</span>;
+    return <span className="text-primary-600 ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>;
   }
 
   return (
@@ -136,6 +186,24 @@ export default function IngredientsPage() {
           </form>
         )}
 
+        {!loading && (
+          <div className="flex gap-4 mb-4">
+            <input
+              type="text"
+              placeholder="ค้นหาชื่อวัตถุดิบ..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="flex-1 p-2 border rounded"
+            />
+            <button
+              onClick={exportCSV}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+            >
+              ส่งออก CSV
+            </button>
+          </div>
+        )}
+
         {loading ? (
           <p>กำลังโหลด...</p>
         ) : (
@@ -143,19 +211,31 @@ export default function IngredientsPage() {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="p-4 text-left">ชื่อ</th>
-                  <th className="p-4 text-left">หน่วย</th>
-                  <th className="p-4 text-right">ขั้นต่ำ</th>
-                  <th className="p-4 text-right">ราคา/หน่วย</th>
+                  <th className="p-4 text-left cursor-pointer hover:bg-gray-100" onClick={() => handleSort('name')}>
+                    ชื่อ<SortIcon field="name" />
+                  </th>
+                  <th className="p-4 text-left cursor-pointer hover:bg-gray-100" onClick={() => handleSort('unit')}>
+                    หน่วย<SortIcon field="unit" />
+                  </th>
+                  <th className="p-4 text-right cursor-pointer hover:bg-gray-100" onClick={() => handleSort('min_qty')}>
+                    ขั้นต่ำ<SortIcon field="min_qty" />
+                  </th>
+                  <th className="p-4 text-right cursor-pointer hover:bg-gray-100" onClick={() => handleSort('current_qty')}>
+                    คงเหลือ<SortIcon field="current_qty" />
+                  </th>
+                  <th className="p-4 text-right cursor-pointer hover:bg-gray-100" onClick={() => handleSort('cost_per_unit')}>
+                    ราคา/หน่วย<SortIcon field="cost_per_unit" />
+                  </th>
                   <th className="p-4"></th>
                 </tr>
               </thead>
               <tbody>
-                {ingredients.map((ing) => (
+                {filteredAndSorted.map((ing) => (
                   <tr key={ing.id} className="border-t">
                     <td className="p-4 font-medium">{ing.name}</td>
                     <td className="p-4">{ing.unit}</td>
                     <td className="p-4 text-right">{ing.min_qty}</td>
+                    <td className="p-4 text-right">{ing.current_qty}</td>
                     <td className="p-4 text-right">{formatCurrency(ing.cost_per_unit)}</td>
                     <td className="p-4 text-right">
                       <button
@@ -169,6 +249,9 @@ export default function IngredientsPage() {
                 ))}
               </tbody>
             </table>
+            {filteredAndSorted.length === 0 && (
+              <p className="p-4 text-center text-gray-500">ไม่พบวัตถุดิบที่ค้นหา</p>
+            )}
           </div>
         )}
       </div>

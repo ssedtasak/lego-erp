@@ -1,4 +1,4 @@
-# LEGO ERP Agent System v0.97.0
+# LEGO ERP Agent System v0.97.1
 
 LEGO ERP is a modular restaurant stock management system built with Next.js, Vite/React (LINE LIFF), and Supabase.
 
@@ -223,3 +223,84 @@ Follow the LEGO principle: modules are independent and composable.
 | **Backend** | Supabase | Both | Row Level Security |
 
 **Notifications**: Python cron job → LINE Notify API (`tools/notify_low_stock.py`)
+
+---
+
+## Self-Improvement Loop
+
+Every failure is a chance to make the system stronger. When a bug is found or a risk is missed, follow this loop:
+
+```
+1. Identify what broke
+2. Fix the tool or skill
+3. Verify the fix works
+4. Update the relevant workflow
+5. Move on with a more robust system
+```
+
+### Self-Improvement Triggers
+
+| Trigger | Action |
+|---------|--------|
+| Bug found in code | Fix bug, update fix-bug.md if pattern discovered |
+| Risk missed by SARC | Update risk-evaluator.md with new risk type |
+| New vulnerability found | Create/update skill (e.g., csv-security.md) |
+| Better method discovered | Update relevant workflow |
+| Common mistake | Add to NEXT_STEPS.md lessons learned |
+
+### Lessons Learned Log (in NEXT_STEPS.md)
+
+The NEXT_STEPS.md file contains a "Lessons Learned" section that documents:
+- Auth mismatches (LINE vs Supabase)
+- Schema change cascades
+- Manual SQL Editor pitfalls
+- CSV security vulnerabilities
+- RLS policy mistakes
+
+### Skill Versioning
+
+Skills are versioned and dated:
+```
+## Skill Version
+**v1.0** — Created YYYY-MM-DD after [event that prompted creation]
+```
+
+When a skill is updated, increment version and log what changed:
+```
+## Skill Version
+**v1.1** — Updated YYYY-MM-DD after [reason]
+- Added: [what was added]
+- Fixed: [what was fixed]
+```
+
+---
+
+## Project Structure v0.97.0
+
+```
+LEGOerp/
+├── apps/
+│   ├── web/                    # Next.js 14 dashboard (Owner)
+│   │   └── src/app/           # App Router pages
+│   └── liff/                  # Vite + React LINE app (Staff)
+│       └── src/pages/         # Stock-in/out forms
+├── workflows/                  # NEW: SOPs for common tasks
+│   ├── sarc-chain.md          # SARC chain procedure
+│   ├── add-feature.md         # Feature development SOP
+│   └── fix-bug.md            # Bug fix SOP
+├── skills/                     # NEW: Reusable prompt templates
+│   ├── csv-security.md        # CSV escaping + formula injection
+│   └── code-review-checklist.md
+├── supabase/
+│   └── schema.sql            # DB schema + stored procedures
+├── tools/                     # Python automation scripts
+├── docs/                      # Setup guides
+├── reports/                   # Structured analysis outputs
+├── outputs/                   # Agent work-in-progress
+├── .tmp/                      # Temporary files
+├── SPEC.md                    # Product requirements (source of truth)
+├── NEXT_STEPS.md              # Phase tracker + lessons learned
+├── AGENTS.md                  # This file
+└── .factory/
+    └── droids/               # Droid definitions (v0.97.0)
+```
