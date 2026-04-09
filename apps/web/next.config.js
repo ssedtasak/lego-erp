@@ -3,8 +3,8 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@supabase/supabase-js', '@supabase/ssr'],
   output: 'export',
-  basePath: '/lego-erp',
-  assetPrefix: '/lego-erp/',
+  basePath: process.env.GITHUB_PAGES ? '/lego-erp' : '',
+  assetPrefix: process.env.GITHUB_PAGES ? '/lego-erp/' : '',
 };
 
 module.exports = nextConfig;
