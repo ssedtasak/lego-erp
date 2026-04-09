@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@/lib/supabase';
 
 type Ingredient = {
@@ -14,9 +14,15 @@ type Ingredient = {
 
 import BackButton from '@/components/BackButton';
 
+type SortField = 'name' | 'current_qty' | 'min_qty';
+type SortDir = 'asc' | 'desc';
+
 export default function InventoryPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
   const supabase = createClient();
 
   useEffect(() => {
@@ -32,6 +38,15 @@ export default function InventoryPage() {
     setLoading(false);
   }
 
+  function handleSort(field: SortField) {
+    if (sortField === field) {
+      setSortDir(sortDir === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDir('asc');
+    }
+  }
+
   function getStatus(item: Ingredient) {
     if (item.current_qty < item.min_qty) return 'bg-red-100 text-red-800';
     if (item.current_qty < item.min_qty * 1.5) return 'bg-yellow-100 text-yellow-800';
@@ -44,6 +59,26 @@ export default function InventoryPage() {
     return 'ปกติ';
   }
 
+  const filteredAndSorted = useMemo(() => {
+    let result = [...ingredients];
+    if (search) {
+      result = result.filter(item => item.name.toLowerCase().includes(search.toLowerCase()));
+    }
+    result.sort((a, b) => {
+      let valA: any = sortField === 'name' ? a.name.toLowerCase() : a[sortField];
+      let valB: any = sortField === 'name' ? b.name.toLowerCase() : b[sortField];
+      if (valA < valB) return sortDir === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+    return result;
+  }, [ingredients, search, sortField, sortDir]);
+
+  function SortIcon({ field }: { field: SortField }) {
+    if (sortField !== field) return <span className="text-gray-400 ml-1">↕</span>;
+    return <span className="text-primary-600 ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>;
+  }
+
   return (
     <div className="min-h-screen p-8">
       <div className="max-w-4xl mx-auto">
@@ -52,6 +87,18 @@ export default function InventoryPage() {
           <h1 className="text-2xl font-bold">ตรวจสอบสต็อก</h1>
         </div>
 
+        {!loading && (
+          <div className="mb-4">
+            <input
+              type="text"
+              placeholder="ค้นหาวัตถุดิบ..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          </div>
+        )}
+
         {loading ? (
           <p>กำลังโหลด...</p>
         ) : (
@@ -59,14 +106,20 @@ export default function InventoryPage() {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="p-4 text-left">วัตถุดิบ</th>
-                  <th className="p-4 text-right">คงเหลือ</th>
-                  <th className="p-4 text-right">ขั้นต่ำ</th>
+                  <th className="p-4 text-left cursor-pointer hover:bg-gray-100" onClick={() => handleSort('name')}>
+                    วัตถุดิบ<SortIcon field="name" />
+                  </th>
+                  <th className="p-4 text-right cursor-pointer hover:bg-gray-100" onClick={() => handleSort('current_qty')}>
+                    คงเหลือ<SortIcon field="current_qty" />
+                  </th>
+                  <th className="p-4 text-right cursor-pointer hover:bg-gray-100" onClick={() => handleSort('min_qty')}>
+                    ขั้นต่ำ<SortIcon field="min_qty" />
+                  </th>
                   <th className="p-4 text-center">สถานะ</th>
                 </tr>
               </thead>
               <tbody>
-                {ingredients.map((item) => (
+                {filteredAndSorted.map((item) => (
                   <tr key={item.id} className="border-t">
                     <td className="p-4 font-medium">{item.name}</td>
                     <td className="p-4 text-right">
@@ -83,6 +136,9 @@ export default function InventoryPage() {
                 ))}
               </tbody>
             </table>
+            {filteredAndSorted.length === 0 && (
+              <p className="p-4 text-center text-gray-500">ไม่พบวัตถุดิบที่ค้นหา</p>
+            )}
           </div>
         )}
       </div>
