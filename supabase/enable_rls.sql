@@ -30,9 +30,19 @@ CREATE POLICY "Users can insert own profile"
   WITH CHECK (auth.uid() = id OR auth.uid() = auth_user_id);
 
 -- ============================================
--- Policy: Ingredients - owners can do everything, staff read-only
+-- Policy: Ingredients - staff can read, owners can manage
 -- ============================================
-CREATE POLICY "Owners can do everything on ingredients"
+CREATE POLICY "Staff can view ingredients"
+  ON ingredients FOR SELECT
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM staff_profiles
+      WHERE line_user_id = auth.uid()::TEXT
+    )
+  );
+
+CREATE POLICY "Owners can manage ingredients"
   ON ingredients FOR ALL
   TO authenticated
   USING (
@@ -44,7 +54,7 @@ CREATE POLICY "Owners can do everything on ingredients"
   );
 
 -- ============================================
--- Policy: Transactions - owners see all, staff see own
+-- Policy: Transactions - owners full access, staff insert own only
 -- ============================================
 CREATE POLICY "Owners can do everything on transactions"
   ON transactions FOR ALL
@@ -63,7 +73,7 @@ CREATE POLICY "Staff can insert own transactions"
   WITH CHECK (staff_id = auth.uid()::TEXT);
 
 -- ============================================
--- Policy: Alerts - owners manage, staff view own ingredient alerts
+-- Policy: Alerts - owners manage only
 -- ============================================
 CREATE POLICY "Owners can do everything on alerts"
   ON alerts FOR ALL

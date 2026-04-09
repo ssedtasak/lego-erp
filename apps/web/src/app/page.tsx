@@ -7,15 +7,31 @@ import { LogOut } from 'lucide-react';
 
 export default function HomePage() {
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) {
+        window.location.href = '/login';
+        return;
+      }
+      setUser(data.user);
+      setLoading(false);
+    });
   }, []);
 
   async function handleLogout() {
     await supabase.auth.signOut();
     window.location.href = '/login';
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>กำลังโหลด...</p>
+      </div>
+    );
   }
 
   return (
