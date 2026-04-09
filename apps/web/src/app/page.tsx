@@ -84,6 +84,14 @@ export default function HomePage() {
           </Link>
 
           <Link
+            href="/reports/stock-usage"
+            className="p-6 bg-white rounded-lg shadow hover:shadow-md transition border border-gray-200"
+          >
+            <h2 className="text-xl font-semibold mb-2">📊 ดูการใช้วัตถุดิบ</h2>
+            <p className="text-gray-600 text-sm">รายงานการใช้วัตถุดิบตามช่วงเวลา</p>
+          </Link>
+
+          <Link
             href="/shopping-list"
             className="p-6 bg-white rounded-lg shadow hover:shadow-md transition border border-gray-200"
           >
